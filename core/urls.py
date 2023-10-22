@@ -22,7 +22,8 @@ from django.conf import settings
 urlpatterns = [
     path("admin/", admin.site.urls),
     # path("api/user", include("trex.user.urls")),
-    path("api/", include("trex.classroom.urls")),
+    path("api-auth/", include('rest_framework.urls', namespace='rest_framework')),
+    path("api/classrooms/", include("trex.classroom.urls")),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
