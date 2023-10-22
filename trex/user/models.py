@@ -5,7 +5,11 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    role = models.CharField(max_length=100, null=True, blank=True)
+    role_choices = (
+        ('teacher', 'Teacher'),
+        ('student', 'Student'),
+    )
+    role = models.CharField(max_length=20, choices=role_choices, default='student')
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     gender = models.CharField(max_length=20, null=True, blank=True)
     joining_date = models.DateTimeField(auto_now_add=True)
