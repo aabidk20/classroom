@@ -1,13 +1,12 @@
 def response_payload(success: bool, data=None, message=None):
-    if success:
-        return {
-            "success": True,
-            "message": message,
-            "data": data,
-        }
-    else:
-        return {
-            "success": False,
-            "message": message,
-            "errors": data,
-        }
+    response = {
+        "success": success,
+    }
+    if message is not None:
+        response['message'] = message
+    if success is True and data is not None:
+        response['data'] = data
+    elif success is False and data is not None:
+        response['errors'] = data
+
+    return response
