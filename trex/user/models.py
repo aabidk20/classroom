@@ -8,10 +8,17 @@ class User(AbstractUser):
     role_choices = (
         ('teacher', 'Teacher'),
         ('student', 'Student'),
+        ('not-specified', 'Not Specified'),
     )
-    role = models.CharField(max_length=20, choices=role_choices, default='student')
+    gender_choices = (
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('other', 'Other'),
+        ('not-specified', 'Not Specified')
+    )
+    role = models.CharField(max_length=20, choices=role_choices, default='not-specified')
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
-    gender = models.CharField(max_length=20, null=True, blank=True)
+    gender = models.CharField(max_length=20, choices=gender_choices, blank=True, default='not-specified')
     joining_date = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
