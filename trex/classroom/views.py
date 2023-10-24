@@ -6,8 +6,8 @@ from rest_framework.generics import (
     ListAPIView,
     RetrieveAPIView,
     CreateAPIView,
-    RetrieveUpdateAPIView,
-    RetrieveDestroyAPIView,
+    UpdateAPIView,
+    DestroyAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
 from .models import Classroom
@@ -77,7 +77,7 @@ class ClassroomDetailView(RetrieveAPIView):
             )
 
 
-class ClassroomUpdateView(RetrieveUpdateAPIView):
+class ClassroomUpdateView(UpdateAPIView):
 
     # permission_classes = (IsAuthenticated,)
     queryset = Classroom.objects.all()
@@ -87,27 +87,6 @@ class ClassroomUpdateView(RetrieveUpdateAPIView):
     lookup_field = "classroom_id"
 
     # NOTE: Explore the get_queryset method, can we use it to filter based on the request?
-
-    def get(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = self.get_serializer(instance)
-            return Response(
-                response_payload(
-                    success=True,
-                    message="Classroom retrieved successfully",
-                    data=serializer.data,
-                ),
-                status=status.HTTP_200_OK,
-            )
-        except Http404:
-            return Response(
-                response_payload(
-                    success=False,
-                    message="Classroom not found",
-                ),
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
     def update(self, request, *args, **kwargs):
         try:
@@ -142,32 +121,11 @@ class ClassroomUpdateView(RetrieveUpdateAPIView):
             )
 
 
-class ClassroomDeleteView(RetrieveDestroyAPIView):
+class ClassroomDeleteView(DestroyAPIView):
     # permission_classes = (IsAuthenticated,)
     queryset = Classroom.objects.all()
     serializer_class = ClassroomSerializer
     lookup_field = "classroom_id"
-
-    def get(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = self.get_serializer(instance)
-            return Response(
-                response_payload(
-                    success=True,
-                    message="Classroom retrieved successfully",
-                    data=serializer.data,
-                ),
-                status=status.HTTP_200_OK,
-            )
-        except Http404:
-            return Response(
-                response_payload(
-                    success=False,
-                    message="Classroom not found",
-                ),
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
     def destroy(self, request, *args, **kwargs):
         try:
@@ -184,7 +142,6 @@ class ClassroomDeleteView(RetrieveDestroyAPIView):
             return Response(
                 response_payload(
                     success=False,
-                    status=status.HTTP_404_NOT_FOUND,
                     message="Classroom not found",
                 ),
                 status=status.HTTP_404_NOT_FOUND,
