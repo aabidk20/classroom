@@ -54,6 +54,9 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(style={"input_type": "password"}, write_only=True)
+    password2 = serializers.CharField(style={"input_type": "password"}, write_only=True)
+
     class Meta:
         model = User
         fields = (
@@ -61,6 +64,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "password",
+            "password2",
             "role",
             "first_name",
             "last_name",
@@ -74,15 +78,21 @@ class UserCreateSerializer(serializers.ModelSerializer):
     def validate_email(self, email):
         if User.objects.filter(email=email).exists():
             raise serializers.ValidationError(
-                response_payload(
-                    success=False,
-                    message="A user with that email already exists",
-                )
+                detail="A user with that email already exists",
             )
         return email
 
+    def validate_password(self, password):
+        password2 = self.get_initial().get("password2")
+        if password != password2:
+            raise serializers.ValidationError(
+                detail="Passwords do not match"
+            )
+        return password
+
     def create(self, validated_data):
         password = validated_data.pop('password')
+        validated_data.pop('password2')
         user = User.objects.create(**validated_data)
         user.set_password(password)
         user.is_active = True
