@@ -101,3 +101,73 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return UserDetailSerializer(instance).data
+
+
+class UserLoginSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=255, min_length=3)
+    password = serializers.CharField(max_length=68, min_length=6, write_only=True)
+    tokens = serializers.SerializerMethodField()
+
+    def get_tokens(self, obj):
+        try:
+            user = User.objects.get(username=obj['username'])
+        except:
+            raise serializers.ValidationError(
+                detail="A user with that username does not exist",
+            )
+        return user.tokens()
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'password',
+            'tokens',
+            'id',
+            'email',
+            'role',
+            'first_name',
+            'last_name',
+            'avatar',
+            'gender',
+        )
+        read_only_fields = (
+            'id',
+            'email',
+            'role',
+            'first_name',
+            'last_name',
+            'avatar',
+            'gender',
+        )
+
+
+    def validate(self, attrs):
+        username = attrs.get('username', '')
+        password = attrs.get('password', '')
+        if username and password:
+            user = User.objects.filter(username=username).first()
+            if user:
+                if not user.check_password(password):
+                    raise serializers.ValidationError(
+                        detail="Incorrect username or password",
+                    )
+            else:
+                raise serializers.ValidationError(
+                    detail="Incorrect username or password",
+                )
+        else:
+            raise serializers.ValidationError(
+                detail="Username and password are required",
+            )
+        return {
+            'username': user.username,
+            'tokens': user.tokens,
+            'id': user.id,
+            'email': user.email,
+            'role': user.role,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'avatar': user.avatar,
+            'gender': user.gender,
+        }
