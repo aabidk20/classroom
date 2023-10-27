@@ -25,6 +25,7 @@ urlpatterns = [
     path("api-auth/", include('rest_framework.urls', namespace='rest_framework')),
     path("api/classrooms/", include("trex.classroom.urls")),
     path("api/users/", include("trex.user.urls")),
+    path("api/classrooms/<int:classroom_id>/enrollments/", include("trex.enrollment.urls")),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
