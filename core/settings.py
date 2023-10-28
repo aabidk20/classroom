@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "trex.user",
     "trex.classroom",
     "trex.enrollment",
+    "trex.assignment",
 ]
 
 MIDDLEWARE = [
