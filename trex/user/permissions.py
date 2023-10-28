@@ -33,3 +33,13 @@ class IsTeacherOfThisClassroom(BasePermission):
         # This works because of the related_name='classrooms' in Classroom model.
         # Only teacher has 'classrooms' attribute, not the students.
         return request.user.classrooms.filter(classroom_id=classroom_id).exists()
+
+
+class IsStudent(BasePermission):
+    message = response_payload(
+        success=False,
+        message="Only students can perform this action",
+    )
+
+    def has_permission(self, request, view):
+        return request.user.role == 'student'
