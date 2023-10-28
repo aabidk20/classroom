@@ -37,13 +37,42 @@ class ClassroomSerializer(serializers.ModelSerializer):
         return Classroom.objects.create(**validated_data)
 
 
-class ClassroomDetailSerializer(serializers.ModelSerializer):
+class StudentClassroomDetailSerializer(serializers.ModelSerializer):
     teacher_name = serializers.CharField(source='teacher.get_full_name', read_only=True)
+    date_joined = serializers.SerializerMethodField()
+
+    def get_date_joined(self, classroom):
+        user = None
+        request = self.context.get('request')
+        if request and hasattr(request, "user"):
+            user = request.user
+            return classroom.enrollments.get(student=user).date_joined
+        return None
+
+    class Meta:
+        model = Classroom
+        fields = (
+            "classroom_id",
+            "classroom_name",
+            "description",
+            "teacher",
+            "teacher_name",
+            "date_joined",
+        )
+        # fields = '__all__'
+        # we can add other fields such as assignment count, etc in the future
+
+
+class TeacherClassroomDetailSerializer(serializers.ModelSerializer):
+    student_count = serializers.SerializerMethodField()
     student_ids = serializers.SerializerMethodField()
 
     def get_student_ids(self, classroom):
         student_ids = classroom.enrollments.values_list('student_id', flat=True)
         return student_ids
+
+    def get_student_count(self, classroom):
+        return classroom.enrollments.count()
 
     class Meta:
         model = Classroom
@@ -52,8 +81,7 @@ class ClassroomDetailSerializer(serializers.ModelSerializer):
             "classroom_name",
             "description",
             "classroom_code",
-            "teacher",
-            "teacher_name",
+            "student_count",
             "student_ids",
             "created_on",
         )

@@ -148,10 +148,38 @@ class ClassroomCreateView(CreateAPIView):
 
 
 class ClassroomDetailView(RetrieveAPIView):
-    # permission_classes = (IsAuthenticated,)
-    queryset = Classroom.objects.all()
-    serializer_class = ClassroomSerializer
+    """
+    Retrieve a classroom
+    User must be authenticated to access this view.
+    Only teachers who created the classroom or students enrolled in the classroom can retrieve.
+    """
+    permission_classes = [IsAuthenticated, ]
     lookup_field = "classroom_id"
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'teacher':
+            queryset = Classroom.objects.filter(teacher=user)
+        elif user.role == 'student':
+            queryset = Classroom.objects.filter(enrollments__student=user)
+        elif user.is_superuser:
+            queryset = Classroom.objects.all()
+        else:
+            queryset = Classroom.objects.none()
+        return queryset
+
+    def get_serializer(self, *args, **kwargs):
+        """
+        Override get_serializer to return different serializer based on user role.
+        Using student serializer for students and teacher serializer for teachers or admins.
+        """
+        user = self.request.user
+        if user.role == 'teacher' or user.is_superuser:
+            return TeacherClassroomDetailSerializer(*args, **kwargs)
+        elif user.role == 'student':
+            return StudentClassroomDetailSerializer(*args, **kwargs, context={'request': self.request})
+        else:
+            return super().get_serializer(*args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
         try:
@@ -169,7 +197,7 @@ class ClassroomDetailView(RetrieveAPIView):
             return Response(
                 response_payload(
                     success=False,
-                    message="Classroom not found",
+                    message="Either classroom does not exist or you do not have permission to view it",
                 ),
                 status=status.HTTP_404_NOT_FOUND,
             )
