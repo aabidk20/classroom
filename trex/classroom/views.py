@@ -18,7 +18,8 @@ from rest_framework.filters import (
 from .models import Classroom
 from .serializers import (
     ClassroomSerializer,
-    ClassroomDetailSerializer,
+    StudentClassroomDetailSerializer,
+    TeacherClassroomDetailSerializer,
     StudentClassroomListSerializer,
     TeacherClassroomListSerializer,
 )
@@ -204,15 +205,27 @@ class ClassroomDetailView(RetrieveAPIView):
 
 
 class ClassroomUpdateView(UpdateAPIView):
+    """
+    Update a classroom.
+    User must be authenticated to access this view.
+    Only teachers who created the classroom or admins can update.
+    """
 
-    # permission_classes = (IsAuthenticated,)
-    queryset = Classroom.objects.all()
+    permission_classes = [IsAuthenticated & (IsTeacherOfThisClassroom | IsAdmin)]
     serializer_class = ClassroomSerializer
-
-    # NOTE: Explore lookup_field
     lookup_field = "classroom_id"
 
-    # NOTE: Explore the get_queryset method, can we use it to filter based on the request?
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'teacher':
+            queryset = Classroom.objects.filter(teacher=user)
+        elif user.role == 'student':
+            queryset = Classroom.objects.none()
+        elif user.is_superuser:
+            queryset = Classroom.objects.all()
+        else:
+            queryset = Classroom.objects.none()
+        return queryset
 
     def update(self, request, *args, **kwargs):
         try:
@@ -241,17 +254,33 @@ class ClassroomUpdateView(UpdateAPIView):
             return Response(
                 response_payload(
                     success=False,
-                    message="Classroom not found",
+                    message="Either classroom does not exist or you do not have permission to update it",
                 ),
                 status=status.HTTP_404_NOT_FOUND,
             )
 
 
 class ClassroomDeleteView(DestroyAPIView):
-    # permission_classes = (IsAuthenticated,)
-    queryset = Classroom.objects.all()
+    """
+    Delete a classroom
+    Only teachers who created the classroom or admins can delete.
+    """
+
+    permission_classes = [IsAuthenticated & (IsTeacherOfThisClassroom | IsAdmin)]
     serializer_class = ClassroomSerializer
     lookup_field = "classroom_id"
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'teacher':
+            queryset = Classroom.objects.filter(teacher=user)
+        elif user.role == 'student':
+            queryset = Classroom.objects.none()
+        elif user.is_superuser:
+            queryset = Classroom.objects.all()
+        else:
+            queryset = Classroom.objects.none()
+        return queryset
 
     def destroy(self, request, *args, **kwargs):
         try:
@@ -268,9 +297,7 @@ class ClassroomDeleteView(DestroyAPIView):
             return Response(
                 response_payload(
                     success=False,
-                    message="Classroom not found",
+                    message="Either classroom does not exist or you do not have permission to delete it"
                 ),
                 status=status.HTTP_404_NOT_FOUND,
             )
-
-# NOTE: Filtering not added anywhere yet, must add as per get params

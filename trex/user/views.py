@@ -15,12 +15,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenBlacklistView
 
 from .models import User
-from .serializers import (UserListSerializer,
-                          UserDetailSerializer,
-                          UserUpdateSerializer,
-                          UserCreateSerializer,
-                          UserLoginSerializer,
-                          )
+from .serializers import (
+    UserListSerializer,
+    UserDetailSerializer,
+    UserUpdateSerializer,
+    UserCreateSerializer,
+    UserLoginSerializer,
+)
 from core.utils import response_payload
 
 
