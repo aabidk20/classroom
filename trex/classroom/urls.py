@@ -7,6 +7,11 @@ from .views import (
     ClassroomDeleteView
 )
 
+from trex.enrollment.views import (
+    EnrollmentCreateView,
+    EnrollmentDeleteView,
+)
+
 app_name = "classroom"
 
 urlpatterns = [
@@ -15,4 +20,6 @@ urlpatterns = [
     path('<int:classroom_id>/', ClassroomDetailView.as_view(), name='detail'),
     path('<int:classroom_id>/update/', ClassroomUpdateView.as_view(), name='update'),
     path('<int:classroom_id>/delete/', ClassroomDeleteView.as_view(), name='delete'),
+    path('enroll/', EnrollmentCreateView.as_view(), name='enroll'),
+    path('<int:classroom_id>/unenroll/', EnrollmentDeleteView.as_view(), name='unenroll'),
 ]
