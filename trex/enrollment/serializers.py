@@ -62,22 +62,3 @@ class EnrollmentCreateSerializer(serializers.ModelSerializer):
             classroom=classroom,
         )
         return enrollment
-
-
-class EnrollmentDeleteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Enrollment
-        fields = (
-            "enrollment_id",
-            "student",
-            "classroom",
-            "date_joined",
-        )
-        read_only_fields = (
-            "enrollment_id",
-            "student",
-            "classroom",
-            "date_joined",
-        )
-
-        # fields = '__all__'

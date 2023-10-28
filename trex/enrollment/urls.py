@@ -2,7 +2,6 @@ from django.urls import path, include
 
 from .views import (
     EnrollmentListView,
-    # EnrollmentCreateView,
 )
 
 app_name = "enrollment"

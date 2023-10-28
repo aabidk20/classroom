@@ -26,7 +26,6 @@ from .models import Enrollment
 from .serializers import (
     EnrollmentDetailSerializer,
     EnrollmentCreateSerializer,
-    EnrollmentDeleteSerializer
 )
 
 
@@ -132,4 +131,38 @@ class EnrollmentCreateView(CreateAPIView):
                     data=serializer.errors,
                 ),
                 status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class EnrollmentDeleteView(DestroyAPIView):
+    """
+    Delete an enrollment.
+
+    Only student can delete his/her enrollment.
+    """
+
+    permission_classes = [IsAuthenticated & IsStudent, ]
+    lookup_field = "classroom_id"
+
+    def get_queryset(self):
+        return Enrollment.objects.filter(student=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.delete()
+            return Response(
+                response_payload(
+                    success=True,
+                    message="You have been successfully un-enrolled from this classroom",
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Http404:
+            return Response(
+                response_payload(
+                    success=False,
+                    message="You are not enrolled in this classroom",
+                ),
+                status=status.HTTP_404_NOT_FOUND,
             )
