@@ -114,7 +114,13 @@ class ClassroomListView(ListAPIView):
 
 
 class ClassroomCreateView(CreateAPIView):
-    # permission_classes = (IsAuthenticated,)
+    """
+    Create a new classroom
+    User must be authenticated to access this view.
+    Only teachers or admins can create a classroom.
+    """
+
+    permission_classes = [IsAuthenticated & (IsTeacher | IsAdmin)]
     queryset = Classroom.objects.all()
     serializer_class = ClassroomSerializer
 
