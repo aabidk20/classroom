@@ -20,6 +20,7 @@ from trex.user.permissions import (
     IsTeacher,
     IsAdmin,
     IsTeacherOfThisClassroom,
+    IsStudent,
 )
 from .models import Enrollment
 from .serializers import (
@@ -88,3 +89,47 @@ class EnrollmentListView(ListAPIView):
             ),
             status=status.HTTP_200_OK,
         )
+
+
+class EnrollmentCreateView(CreateAPIView):
+    """
+    Create a new enrollment.
+
+    Only student can enroll in a classroom, using the classroom_code.
+    """
+
+    permission_classes = [IsAuthenticated & IsStudent, ]
+    queryset = Enrollment.objects.all()
+    serializer_class = EnrollmentCreateSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            # check if student is already enrolled in this classroom
+            classroom_code = serializer.validated_data.get('classroom_code')
+            if Enrollment.objects.filter(classroom__classroom_code=classroom_code, student=request.user).exists():
+                return Response(
+                    response_payload(
+                        success=False,
+                        message="You are already enrolled in this classroom",
+                    ),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            serializer.save()
+            return Response(
+                response_payload(
+                    success=True,
+                    message="User enrolled successfully",
+                    data=serializer.data,
+                ),
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                response_payload(
+                    success=False,
+                    message="User enrollment failed",
+                    data=serializer.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )

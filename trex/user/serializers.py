@@ -91,6 +91,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return password
 
     def create(self, validated_data):
+        # NOTE: Need error handling here?
         password = validated_data.pop('password')
         validated_data.pop('password2')
         user = User.objects.create(**validated_data)
