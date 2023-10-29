@@ -31,6 +31,8 @@ urlpatterns = [
     path("api/users/", include("trex.user.urls")),
     path("api/classrooms/<int:classroom_id>/enrollments/", include("trex.enrollment.urls")),
     path("api/classrooms/<int:classroom_id>/assignments/", include("trex.assignment.urls")),
+    path("api/classrooms/<int:classroom_id>/assignments/<int:assignment_id>/submissions/",
+         include("trex.submission.urls")),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

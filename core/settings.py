@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "trex.classroom",
     "trex.enrollment",
     "trex.assignment",
+    "trex.submission",
 ]
 
 MIDDLEWARE = [
@@ -102,6 +103,7 @@ SPECTACULAR_SETTINGS = {
         'TAGS': [
             {'name': 'Assignments', 'description': 'Assignment related endpoints'},
             {'name': 'Classrooms', 'description': 'Classroom related endpoints'},
+            {'name': 'Submissions', 'description': 'Submission related endpoints'},
         ]
     },
 }
