@@ -247,3 +247,40 @@ class AssignmentUpdateView(UpdateAPIView):
                 ),
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+
+@extend_schema(tags=["Assignments"])
+class AssignmentDeleteView(DestroyAPIView):
+    """
+    Delete an assignment.
+    User must be authenticated and teacher of the classroom or admin.
+    """
+    permission_classes = [IsAuthenticated & (IsTeacherOfThisClassroom | IsAdmin), ]
+
+    def get_queryset(self):
+        classroom_id = self.kwargs.get("classroom_id")
+        assignment_id = self.kwargs.get("assignment_id")
+        queryset = Assignment.objects.filter(classroom_id=classroom_id)
+        return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        classroom_id = self.kwargs.get("classroom_id")
+        assignment_id = self.kwargs.get("assignment_id")
+        try:
+            instance = Assignment.objects.get(classroom_id=classroom_id, assignment_id=assignment_id)
+        except:
+            return Response(
+                response_payload(
+                    success=False,
+                    message="Assignment not found",
+                ),
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        instance.delete()
+        return Response(
+            response_payload(
+                success=True,
+                message="Assignment deleted successfully",
+            ),
+            status=status.HTTP_200_OK,
+        )
