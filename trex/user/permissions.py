@@ -43,3 +43,16 @@ class IsStudent(BasePermission):
 
     def has_permission(self, request, view):
         return request.user.role == 'student'
+
+
+class IsStudentOfThisClassroom(BasePermission):
+    message = response_payload(
+        success=False,
+        message="Only students of this classroom can perform this action",
+    )
+
+    def has_permission(self, request, view):
+        classroom_id = view.kwargs['classroom_id']
+        # This works because of the related_name='enrollments' in Enrollment model.
+        # Only student has 'enrollments' attribute, not the teachers.
+        return request.user.enrollments.filter(classroom_id=classroom_id).exists()

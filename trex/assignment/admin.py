@@ -1,3 +1,6 @@
+from datetime import date
+from django import forms
+
 from django.contrib import admin
 from .models import Assignment
 
@@ -12,6 +15,7 @@ class AssignmentAdmin(admin.ModelAdmin):
         "classroom_id",
         "get_classroom",
         "created_on",
+        "due_date",
     )
 
     def get_classroom(self, obj):

@@ -22,6 +22,6 @@ class Assignment(models.Model):
         return self.assignment_name
 
     class Meta:
-        ordering = ('created_on', 'assignment_id')
+        ordering = ('created_on',)
         verbose_name_plural = 'Assignments'
         verbose_name = 'Assignment'
