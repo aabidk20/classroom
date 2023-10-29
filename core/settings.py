@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "trex.user",
     "trex.classroom",
     "trex.enrollment",
+    "trex.assignment",
 ]
 
 MIDDLEWARE = [
@@ -96,7 +97,13 @@ SPECTACULAR_SETTINGS = {
     'SWAGGER_UI_SETTINGS': {
         'persistAuthorization': True,
         'displayRequestDuration': True,
-    }
+    },
+    'COMPONENTS': {
+        'TAGS': [
+            {'name': 'Assignments', 'description': 'Assignment related endpoints'},
+            {'name': 'Classrooms', 'description': 'Classroom related endpoints'},
+        ]
+    },
 }
 
 ROOT_URLCONF = "core.urls"
