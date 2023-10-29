@@ -65,3 +65,58 @@ class TeacherAssignmentListSerializer(serializers.ModelSerializer):
             "status",
             "created_on",
         )
+
+
+class StudentAssignmentDetailSerializer(serializers.ModelSerializer):
+    assigned_date = serializers.SerializerMethodField()
+
+    def get_assigned_date(self, assignment):
+        return assignment.created_on.date()
+
+    class Meta:
+        model = Assignment
+        fields = (
+            "assignment_id",
+            "assignment_name",
+            "description",
+            "due_date",
+            "score",
+            "assigned_date",
+        )
+        read_only_fields = (
+            "assignment_id",
+            "assignment_name",
+            "description",
+            "due_date",
+            "score",
+            "created_on",
+        )
+
+
+class TeacherAssignmentDetailSerializer(serializers.ModelSerializer):
+    # Note: add submission count in the future
+    assigned_date = serializers.SerializerMethodField()
+
+    def get_assigned_date(self, assignment):
+        return assignment.created_on.date()
+
+    class Meta:
+        model = Assignment
+        fields = (
+            "assignment_id",
+            "assignment_name",
+            "description",
+            "due_date",
+            "score",
+            "status",
+            "assigned_date",
+        )
+        read_only_fields = (
+            "assignment_id",
+            "assignment_name",
+            "description",
+            "due_date",
+            "score",
+            "status",
+            "assigned_date",
+        )

@@ -22,6 +22,8 @@ from .serializers import (
     AssignmentSerializer,
     StudentAssignmentListSerializer,
     TeacherAssignmentListSerializer,
+    StudentAssignmentDetailSerializer,
+    TeacherAssignmentDetailSerializer,
 )
 from trex.user.permissions import (
     IsTeacher,
@@ -140,4 +142,58 @@ class AssignmentCreateView(CreateAPIView):
                     data=serializer.errors,
                 ),
                 status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+@extend_schema(tags=["Assignments"])
+class AssignmentDetailView(RetrieveAPIView):
+    """
+    Retrieve an assignment.
+    User must be authenticated to view the assignment.
+    Only teachers or students of the classroom can view the assignment.
+    """
+
+    permission_classes = [IsAuthenticated & (IsTeacherOfThisClassroom | IsStudentOfThisClassroom | IsAdmin), ]
+    lookup_field = "assignment_id"
+
+    def get_queryset(self):
+        classroom_id = self.kwargs.get("classroom_id")
+        assignment_id = self.kwargs.get("assignment_id")
+        user = self.request.user
+        if user.role == "teacher" or user.is_superuser:
+            queryset = Assignment.objects.filter(classroom_id=classroom_id, assignment_id=assignment_id)
+        elif user.role == "student":
+            queryset = Assignment.objects.filter(classroom_id=classroom_id, assignment_id=assignment_id, status="published")
+        else:
+            queryset = Assignment.objects.none()
+        return queryset
+
+    def get_serializer(self, *args, **kwargs):
+        user = self.request.user
+        if user.role == "teacher" or user.is_superuser:
+            return TeacherAssignmentDetailSerializer(*args, **kwargs)
+        elif user.role == "student":
+            return StudentAssignmentDetailSerializer(*args, **kwargs)
+        else:
+            return super().get_serializer(*args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response(
+                response_payload(
+                    success=True,
+                    message="Assignment fetched successfully",
+                    data=serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Http404:
+            return Response(
+                response_payload(
+                    success=False,
+                    message="Assignment not found",
+                ),
+                status=status.HTTP_404_NOT_FOUND,
             )
