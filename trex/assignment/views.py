@@ -197,3 +197,53 @@ class AssignmentDetailView(RetrieveAPIView):
                 ),
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+@extend_schema(tags=["Assignments"])
+class AssignmentUpdateView(UpdateAPIView):
+    """
+    Update an assignment.
+    User must be authenticated and teacher of the classroom or admin.
+    """
+    permission_classes = [IsAuthenticated & (IsTeacherOfThisClassroom | IsAdmin), ]
+    serializer_class = AssignmentSerializer
+    lookup_field = "assignment_id"
+
+    def get_queryset(self):
+        classroom_id = self.kwargs.get("classroom_id")
+        assignment_id = self.kwargs.get("assignment_id")
+        queryset = Assignment.objects.filter(classroom_id=classroom_id, assignment_id=assignment_id)
+        return queryset
+
+    def update(self, request, *args, **kwargs):
+        classroom_id = self.kwargs.get("classroom_id")
+        assignment_id = self.kwargs.get("assignment_id")
+        try:
+            instance = Assignment.objects.get(classroom_id=classroom_id, assignment_id=assignment_id)
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                    response_payload(
+                        success=True,
+                        message="Assignment updated successfully",
+                        data=serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                return Response(
+                    response_payload(
+                        success=False,
+                        message="Assignment update failed",
+                        data=serializer.errors,
+                    ),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except Http404:
+            return Response(
+                response_payload(
+                    success=False,
+                    message="Assignment not found",
+                ),
+                status=status.HTTP_404_NOT_FOUND,
+            )
