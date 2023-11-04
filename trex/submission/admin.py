@@ -1,3 +1,5 @@
+import os
+
 from django.contrib import admin
 from .models import Submission
 
@@ -14,6 +16,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         "assignment",
         "get_student_id",
         "get_student_name",
+        "get_submission_files",
     ]
 
     def get_assignment_id(self, obj):
@@ -28,3 +31,6 @@ class SubmissionAdmin(admin.ModelAdmin):
         return f"{obj.student.first_name} {obj.student.last_name}"
     get_student_name.short_description = 'Student Name'
 
+    def get_submission_files(self, obj):
+        return [os.path.basename(i.file.path)for i in obj.files.all()]
+    get_submission_files.short_description = 'Submission Files'

@@ -20,7 +20,7 @@ from drf_spectacular.utils import extend_schema
 from .models import Submission
 from .serializers import (
     SubmissionListSerializer,
-    SubmissionSerializer
+    SubmissionSerializer, SubmissionFileSerializer
 )
 from trex.user.permissions import (
     IsTeacher,
@@ -37,7 +37,7 @@ from trex.assignment.models import Assignment
 class SubmissionListView(ListAPIView):
     """
     List all submissions of an assignment.
-    Teachers can view all submissions of an assignment.
+    Teachers can view all submitted submissions of an assignment.
     Students can view their own submissions of an assignment.
 
     Searching is allowed on student's first name and last name.
@@ -70,6 +70,8 @@ class SubmissionListView(ListAPIView):
             queryset = Submission.objects.filter(assignment__assignment_id=assignment_id, status="submitted")
         elif user.role == "student":
             queryset = Submission.objects.filter(assignment__assignment_id=assignment_id, student=user)
+        else:
+            queryset = Submission.objects.none()
         return queryset
 
     def list(self, request, *args, **kwargs):
@@ -143,8 +145,8 @@ class SubmissionCreateView(CreateAPIView):
             )
 
         # check if submission already exists
-        try:
-            submission = Submission.objects.get(assignment=assignment, student=user)
+        submission, created = Submission.objects.get_or_create(assignment=assignment, student=user)
+        if not created and submission.status == "submitted":
             return Response(
                 response_payload(
                     success=False,
@@ -152,13 +154,15 @@ class SubmissionCreateView(CreateAPIView):
                 ),
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except:
-            pass
-
-        # create a submission
-        serializer = self.get_serializer(data=request.data)
+        if submission.status == "draft":
+            serializer = self.get_serializer(submission, data=request.data, partial=True)
+            if serializer.is_valid():
+                submission = serializer.save(submission=submission)
+        serializer = SubmissionFileSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(assignment=assignment, student=user)
+            # there might be a SubmissionFile record without file, so we need to delete it
+            serializer.save(submission=submission)
+            submission.files.filter(file="").delete()
             return Response(
                 response_payload(
                     success=True,
@@ -178,6 +182,7 @@ class SubmissionCreateView(CreateAPIView):
             )
 
 
+# WARN: this view is not used anywhere for now, create view also handles update
 @extend_schema(tags=["Submissions"])
 class SubmissionUpdateView(UpdateAPIView):
     """
